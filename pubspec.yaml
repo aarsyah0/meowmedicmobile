@@ -10,6 +10,7 @@ dependencies:
   http: ^0.13.3
   cupertino_icons: ^1.0.2
   get: ^4.6.1
+  sliding_clipped_nav_bar: ^3.1.1
 
 dev_dependencies:
   flutter_test:
