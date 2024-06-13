@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meowmedic/signupscreen.dart';
+import 'loginscreen.dart';
 
 void main() {
   runApp(MyApp());
@@ -28,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 2), () {
-      Get.off(() => SignUpScreen());
+      Get.off(() => LoginScreen());
     });
   }
 
