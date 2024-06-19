@@ -1,60 +1,12 @@
-import 'dart:convert'; // Add this import
-
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:http/http.dart' as http;// Add this import
 
-import 'HomeScreen.dart'; // Add this import
+import 'auth_service.dart';
 import 'signupscreen.dart';
 
-void main() {
-  runApp(LoginScreen());
-}
-
-class LoginScreen extends StatefulWidget {
-  @override
-  _LoginScreenState createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController = TextEditingController();
+class LoginScreen extends StatelessWidget {
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  void _login() async {
-    final String email = emailController.text;
-    final String password = passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      Get.snackbar('Error', 'Email and password are required',
-          snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    final response = await http.post(
-      Uri.parse('http://127.0.0.1/meowmedicapp/meowmedic/web/API/login.php'),
-      body: {
-        'username': email,
-        'password': password,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      if (responseData.containsKey('message')) {
-        Get.snackbar('Success', responseData['message'],
-            snackPosition: SnackPosition.BOTTOM);
-        // Navigate to HomeScreen
-        Get.to(() => HomeScreen());
-      } else {
-        Get.snackbar('Error', 'Invalid response from server',
-            snackPosition: SnackPosition.BOTTOM);
-      }
-    } else {
-      final Map<String, dynamic> responseData = json.decode(response.body);
-      Get.snackbar('Error', responseData['error'] ?? 'Login failed',
-          snackPosition: SnackPosition.BOTTOM);
-    }
-  }
+  final AuthService authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
               top: 0,
               left: 0,
               child: Image.asset(
-                'assets/bloblogin.png',
+                'assets/images/bloblogin.png',
                 fit: BoxFit.cover,
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height * 0.45,
@@ -107,9 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextFieldWidget(
-                      controller: emailController,
+                      controller: usernameController,
                       icon: Icons.email,
-                      hintText: 'Email',
+                      hintText: 'Username',
                       textColor: Colors.grey,
                     ),
                     SizedBox(height: 6),
@@ -125,7 +77,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: 'Login',
                       backgroundColor: Color(0xFFA9E2E4),
                       textColor: const Color.fromRGBO(48, 51, 52, 1),
-                      onPressed: _login,
+                      onPressed: () async {
+                        final username = usernameController.text;
+                        final password = passwordController.text;
+                        final success =
+                            await authService.login(username, password);
+                        if (success) {
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Login Error'),
+                              content:
+                                  Text('Failed to login. Please try again.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
                     SizedBox(height: 16),
                     CustomButton(
@@ -133,7 +108,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: Color(0xFFFB7E5E),
                       textColor: const Color.fromRGBO(255, 255, 255, 1),
                       onPressed: () {
-                        Get.to(() => SignUpScreen());
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => SignUpScreen(),
+                        ));
                       },
                     ),
                     SizedBox(height: 25),
@@ -243,4 +220,3 @@ class CustomButton extends StatelessWidget {
     );
   }
 }
-

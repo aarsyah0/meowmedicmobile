@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-void main() {
-  runApp(SignUpScreen());
+import 'auth_service.dart'; // Import AuthService
+import 'loginscreen.dart';
+
+class SignUpScreen extends StatefulWidget {
+  @override
+  _SignUpScreenState createState() => _SignUpScreenState();
 }
 
-class SignUpScreen extends StatelessWidget {
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  final AuthService authService =
+      AuthService(); // Create an instance of AuthService
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,7 +32,7 @@ class SignUpScreen extends StatelessWidget {
               top: 0,
               left: 0,
               child: Image.asset(
-                'assets/blobregis.png',
+                'assets/images/blobregis.png',
                 fit: BoxFit.cover,
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height * 0.45,
@@ -41,9 +52,7 @@ class SignUpScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(
-                    height: 16,
-                  ),
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -54,21 +63,30 @@ class SignUpScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 40),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 30), // Adjust the vertical padding here
+                  padding: EdgeInsets.symmetric(vertical: 30),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       TextFieldWidget(
+                        controller: nameController,
+                        icon: Icons.person_off_rounded,
+                        hintText: 'Name',
+                      ),
+                      SizedBox(height: 6),
+                      TextFieldWidget(
+                        controller: usernameController,
+                        icon: Icons.email_rounded,
+                        hintText: 'Username',
+                      ),
+                      SizedBox(height: 6),
+                      TextFieldWidget(
+                        controller: emailController,
                         icon: Icons.email,
                         hintText: 'Email',
                       ),
                       SizedBox(height: 6),
                       TextFieldWidget(
-                        icon: Icons.phone,
-                        hintText: 'Phone Number',
-                      ),
-                      SizedBox(height: 6),
-                      TextFieldWidget(
+                        controller: passwordController,
                         icon: Icons.lock,
                         hintText: 'Password',
                         obscureText: true,
@@ -78,9 +96,36 @@ class SignUpScreen extends StatelessWidget {
                         text: 'Sign Up',
                         backgroundColor: Color(0xFFFB7E5E),
                         textColor: Colors.white,
-                        onPressed: () {
-                          // Navigate back to the previous screen
-                          Get.back();
+                        onPressed: () async {
+                          final success = await authService.signup(
+                            nameController.text,
+                            usernameController.text,
+                            emailController.text,
+                            passwordController.text,
+                          );
+                          if (success) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (_) => LoginScreen(),
+                              ),
+                            );
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Sign Up Error'),
+                                content: Text(
+                                    'Failed to sign up. Please try again.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         },
                       ),
                     ],
@@ -96,12 +141,14 @@ class SignUpScreen extends StatelessWidget {
 }
 
 class TextFieldWidget extends StatelessWidget {
+  final TextEditingController controller;
   final IconData icon;
   final String hintText;
   final bool obscureText;
 
   const TextFieldWidget({
     Key? key,
+    required this.controller,
     required this.icon,
     required this.hintText,
     this.obscureText = false,
@@ -126,6 +173,7 @@ class TextFieldWidget extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: TextField(
+              controller: controller,
               obscureText: obscureText,
               decoration: InputDecoration(
                 border: InputBorder.none,
@@ -179,4 +227,3 @@ class CustomButton extends StatelessWidget {
     );
   }
 }
-
