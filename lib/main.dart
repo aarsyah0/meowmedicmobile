@@ -1,9 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:meowmedic/signupscreen.dart';
-import 'loginscreen.dart';
+import 'package:provider/provider.dart';
+
+import 'apiservice.dart';
+import 'home.dart';
+import 'loginscreen.dart'; // Import the login screen
 
 void main() {
   runApp(MyApp());
@@ -12,51 +12,22 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
-    );
-  }
-}
-
-class SplashScreen extends StatefulWidget {
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Timer(Duration(seconds: 2), () {
-      Get.off(() => LoginScreen());
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFFB7E5E),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'meow medic',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 50,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 9),
-            Image.asset(
-              'assets/catgroup.png',
-              height: 100,
-              width: 300,
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        Provider<ApiService>(create: (_) => ApiService()),
+      ],
+      child: MaterialApp(
+        title: 'Diagnosa Kucing',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
+        initialRoute: '/login',
+        routes: {
+          '/login': (context) => LoginScreen(),
+          '/home': (context) => Home(),
+        },
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
