@@ -1,7 +1,40 @@
+import 'dart:convert';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class HomeScreen extends StatelessWidget {
+import 'models/penyakit.dart';
+import 'penyakitdetailscreen.dart';
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Penyakit> _penyakits = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPenyakits();
+  }
+
+  Future<void> _fetchPenyakits() async {
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/penyakit'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['data'];
+      setState(() {
+        _penyakits = data.map((item) => Penyakit.fromJson(item)).toList();
+      });
+    } else {
+      throw Exception('Failed to load penyakits');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                   _buildSliderItem(
                     'Keep your fur babies healthy',
                     'By giving proper care.',
-                    'assets/cat_doctor.png',
+                    'assets/images/meow.png',
                     Colors.teal.shade100,
                   ),
                   _buildSliderItem(
@@ -48,9 +81,9 @@ class HomeScreen extends StatelessWidget {
                 ].map((item) => item).toList(),
               ),
               SizedBox(height: 20),
-              // Pets category
+              // Disease category
               Text(
-                'Pets',
+                'Diseases',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -58,16 +91,13 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildPetCategory(Icons.pets, 'Bird'),
-                  _buildPetCategory(Icons.pets, 'Cat'),
-                  _buildPetCategory(Icons.pets, 'Dog'),
-                  _buildPetCategory(Icons.pets, 'Fish'),
-                  _buildPetCategory(Icons.pets, 'Rabbit'),
-                  _buildPetCategory(Icons.pets, 'Reptile'),
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _penyakits
+                      .map((penyakit) => _buildPenyakitCategory(penyakit))
+                      .toList(),
+                ),
               ),
             ],
           ),
@@ -124,19 +154,29 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPetCategory(IconData iconData, String label) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 30,
-          child: Icon(
-            iconData,
-            size: 30,
+  Widget _buildPenyakitCategory(Penyakit penyakit) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PenyakitDetailScreen(penyakit: penyakit),
           ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage('assets/images/' + penyakit.gambar),
+            ),
+            SizedBox(height: 8),
+            Text(penyakit.nama),
+          ],
         ),
-        SizedBox(height: 8),
-        Text(label),
-      ],
+      ),
     );
   }
 }
